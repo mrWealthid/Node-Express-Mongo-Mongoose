@@ -39,16 +39,28 @@ exports.getAllTours = async (req, res) => {
        on your api filters
      */
   try {
+    console.log(req.query);
     //Build Query
+
+    //1 filtering
     const queryObj = { ...req.query };
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    //first way of writing filters
-    const query = Tour.find(queryObj);
-
-    console.log(req.query);
+    //2) Advanced filtering
     //{difficulty:'easy', duration: {$gte:5.3}}
+    //{difficulty:'easy', duration: {gte:5.3}}
+
+    let queryStr = JSON.stringify(queryObj);
+
+    queryStr = queryStr.replace(
+      /\b{gte|gt|lte|lt}\b/g,
+      (match) => `$ ${match}`
+    );
+
+    //Fix Me === it didn't work for lt
+
+    const query = Tour.find(JSON.parse(queryStr));
 
     /* second method
     const tours = await Tour.find()
