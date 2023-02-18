@@ -1,11 +1,7 @@
-const fs = require('fs');
-const path= require( 'path');
-
-const Tour = require('../model/tourModel')
+const Tour = require('../model/tourModel');
 
 // const filepath = path.join(process.cwd(), 'dev-data/data', 'tours-simple.json');
 // const tours = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
-
 
 // exports.checkID=(req,res,next, val) => {
 //   console.log(`Tour id is ${val}`)
@@ -32,76 +28,98 @@ const Tour = require('../model/tourModel')
 // }
 
 /////2) ROUTE HANDLERS
-exports.getAllTours =async (req, res) => {
+exports.getAllTours = async (req, res) => {
   // console.log(req.requestTime)
+
+  /*Note
+    In some cases you don't want to
+    filter with certain query parameters
+     something like ?difficulty=easy&page=2
+      you have to handle such exception
+       on your api filters
+     */
   try {
+    //Build Query
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    //first way of writing filters
+    const query = Tour.find(queryObj);
+
+    console.log(req.query);
+    //{difficulty:'easy', duration: {$gte:5.3}}
+
+    /* second method
     const tours = await Tour.find()
+      .where('duration')
+      .equals(5)
+      .where('difficulty')
+      .equals('easy');
+      
+    */
+
+    //Execute Query
+    const tours = await query;
+
+    //Send Response
     res.status(200).json({
       status: 'success',
       results: tours.length,
       data: {
-        tours
-      }
+        tours,
+      },
     });
-  }
-  
-  catch (err) {
+  } catch (err) {
     res.status(404).json({
       status: 'fail',
-      message: err
-    })
+      message: err,
+    });
   }
 };
-exports.getTour = async(req, res) => {
+exports.getTour = async (req, res) => {
   // const pathParam = req.params.id;
   // const tour = tours.find((tour) => tour.id === +pathParam);
- 
-    // res.status(404).json({
-    //   status: 'failed',
-    //   message: 'Invalid ID'
-    // });
-  
-  const tour = await Tour.findById(req.params.id)
- //or Tour.findOne({_id: req.params.id})
+
+  // res.status(404).json({
+  //   status: 'failed',
+  //   message: 'Invalid ID'
+  // });
+
+  const tour = await Tour.findById(req.params.id);
+  //or Tour.findOne({_id: req.params.id})
   try {
     res.status(200).json({
       status: 'success',
       data: {
-        tour
-      }
+        tour,
+      },
     });
-  }
-  
-  catch (err) {
+  } catch (err) {
     res.status(404).json({
       status: 'fail',
-      message: err
-    })
+      message: err,
+    });
   }
 };
 exports.createTour = async (req, res) => {
-  
   try {
-
-    const newTour = await Tour.create(req.body)
+    const newTour = await Tour.create(req.body);
     res.status(201).json({
       status: 'success',
       data: {
-        tour: newTour
-      }
+        tour: newTour,
+      },
     });
-  }
-  catch (err) {
+  } catch (err) {
     res.status(400).json({
       status: 'fail',
-     message: err
-    })
+      message: err,
+    });
   }
- 
-  
 };
 
-exports.updateTour = async (req,res) => {
+exports.updateTour = async (req, res) => {
   // const pathParam = req.params.id;
   // const modifiedTour = req.body;
   // const findTourIndex = tours.findIndex((tour) => tour.id === +pathParam);
@@ -113,39 +131,42 @@ exports.updateTour = async (req,res) => {
   //   })
   //
   // fs.writeFile(filepath, JSON.stringify(tours), (err) => {
-  
-  
-  try{
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators:true})
+
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     res.status(201).json({
       status: 'success',
       data: {
-        tour
-      }
+        tour,
+      },
     });
-    
-  }catch (err) {
+  } catch (err) {
     res.status(400).json({
       status: 'fail',
-      message: err
-    })
+      message: err,
+    });
   }
 };
-exports.patchTour = async(req, res) => {
+exports.patchTour = async (req, res) => {
   try {
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators:true})
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     res.status(201).json({
       status: 'success',
       data: {
-        tour
-      }
+        tour,
+      },
     });
-    
-  }catch (err) {
+  } catch (err) {
     res.status(400).json({
       status: 'fail',
-      message: err
-    })
+      message: err,
+    });
   }
   // const pathParam = req.params.id;
   // const modifiedTour = req.body;
@@ -154,7 +175,7 @@ exports.patchTour = async(req, res) => {
   // fs.writeFile(filepath, JSON.stringify(tours), (err) => {
 };
 
-exports.deleteTour = async(req, res)=> {
+exports.deleteTour = async (req, res) => {
   // const pathParam = req.params.id;
   // const filteredTours = tours.filter((tour) => tour.id !== +pathParam);
   // if (filteredTours.length === tours.length) {
@@ -164,27 +185,19 @@ exports.deleteTour = async(req, res)=> {
   //   });
   // }
   // fs.writeFile(filepath, JSON.stringify(filteredTours), (err) => {
-   
-  
-  
-   try {
-     
-     await Tour.findByIdAndDelete(req.params.id)
-     res.status(204).json({
-       status: 'success',
-       data: null
-     });
-   }
-   catch (err) {
-     res.status(400).json({
-       status: 'fail',
-       message: err
-     })
-   }
-   
 
-  
-}
-
+  try {
+    await Tour.findByIdAndDelete(req.params.id);
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
 
 // exports. {deleteTour} from
