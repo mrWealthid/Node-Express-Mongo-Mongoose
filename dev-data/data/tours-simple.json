@@ -205,60 +205,6 @@
       "2022-01-16,10:00",
       "2022-12-12,10:00"
     ]
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402128796
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402180681
-  },
-  {
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402264823
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402371736
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402534165
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402536043
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "id": 1674402609955
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "price": 5000,
-    "id": 1674402833376
-  },
-  {
-    "name": "Testing Tour",
-    "duration": 10,
-    "difficulty": "easy",
-    "price": 5000,
-    "id": 1674403421568
   }
+
 ]
