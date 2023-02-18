@@ -3,125 +3,186 @@ const path= require( 'path');
 
 const Tour = require('../model/tourModel')
 
-const filepath = path.join(process.cwd(), 'dev-data/data', 'tours-simple.json');
-const tours = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
+// const filepath = path.join(process.cwd(), 'dev-data/data', 'tours-simple.json');
+// const tours = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
 
 
-exports.checkID=(req,res,next, val) => {
-  console.log(`Tour id is ${val}`)
-  if(req.params.id > tours.length ) {
-    return res.status(404).json({
-      status:'failed',
-      message: 'Invalid Id'
-    })
-  }
-  next()
-}
+// exports.checkID=(req,res,next, val) => {
+//   console.log(`Tour id is ${val}`)
+//   if(req.params.id > tours.length ) {
+//     return res.status(404).json({
+//       status:'failed',
+//       message: 'Invalid Id'
+//     })
+//   }
+//   next()
+// }
 
-exports.checkRequestBody = (req, res, next) => {
-    const body = req.body
-  // console.log(body.hasOwnProperty('name'))
-  // console.log(body.hasOwnProperty('price'))
-    if(!body.name || !body.price)  {
-    return res.status(404).json({
-      status:'failed',
-      message: 'Invalid data'
-    })
-  }
-  next()
-}
+// exports.checkRequestBody = (req, res, next) => {
+//     const body = req.body
+//   // console.log(body.hasOwnProperty('name'))
+//   // console.log(body.hasOwnProperty('price'))
+//     if(!body.name || !body.price)  {
+//     return res.status(404).json({
+//       status:'failed',
+//       message: 'Invalid data'
+//     })
+//   }
+//   next()
+// }
 
 /////2) ROUTE HANDLERS
-exports.getAllTours = (req, res) => {
-  console.log(req.requestTime)
-  res.status(200).json({
-    status: 'success',
-    requestedAt:req.requestTime,
-    results: tours.length,
-    data: {
-      tours
-    }
-  });
-};
-exports.getTour = (req, res) => {
-  const pathParam = req.params.id;
-  const tour = tours.find((tour) => tour.id === +pathParam);
-  if (!tour) {
-    res.status(404).json({
-      status: 'failed',
-      message: 'Invalid ID'
+exports.getAllTours =async (req, res) => {
+  // console.log(req.requestTime)
+  try {
+    const tours = await Tour.find()
+    res.status(200).json({
+      status: 'success',
+      results: tours.length,
+      data: {
+        tours
+      }
     });
   }
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour
-    }
-  });
+  
+  catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err
+    })
+  }
 };
-exports.createTour = (req, res) => {
-  const newId = Date.now();
-  const newTour = { ...req.body, id: newId };
-  tours.push(newTour);
-  fs.writeFile(filepath, JSON.stringify(tours), (err) => {
+exports.getTour = async(req, res) => {
+  // const pathParam = req.params.id;
+  // const tour = tours.find((tour) => tour.id === +pathParam);
+ 
+    // res.status(404).json({
+    //   status: 'failed',
+    //   message: 'Invalid ID'
+    // });
+  
+  const tour = await Tour.findById(req.params.id)
+ //or Tour.findOne({_id: req.params.id})
+  try {
+    res.status(200).json({
+      status: 'success',
+      data: {
+        tour
+      }
+    });
+  }
+  
+  catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err
+    })
+  }
+};
+exports.createTour = async (req, res) => {
+  
+  try {
+
+    const newTour = await Tour.create(req.body)
     res.status(201).json({
       status: 'success',
       data: {
         tour: newTour
       }
     });
-  });
-};
-exports.updateTour = (req,res) => {
-  const pathParam = req.params.id;
-  const modifiedTour = req.body;
-  const findTourIndex = tours.findIndex((tour) => tour.id === +pathParam);
-  tours[findTourIndex] = modifiedTour;
-  if(findTourIndex === -1) {
-    res.status(404).json({
-      status: 'failed',
-      data: "Invalid ID"
+  }
+  catch (err) {
+    res.status(400).json({
+      status: 'fail',
+     message: err
     })
   }
-  fs.writeFile(filepath, JSON.stringify(tours), (err) => {
-    res.status(201).json({
-      status: 'success',
-      data: {
-        tour: modifiedTour
-      }
-    });
-  });
-};
-exports.patchTour = (req, res) => {
-  const pathParam = req.params.id;
-  const modifiedTour = req.body;
-  const findTourIndex = tours.findIndex((tour) => tour.id === +pathParam);
-  tours[findTourIndex] = { ...tours[findTourIndex], ...modifiedTour };
-  fs.writeFile(filepath, JSON.stringify(tours), (err) => {
-    res.status(201).json({
-      status: 'success',
-      data: {
-        tour: modifiedTour
-      }
-    });
-  });
+ 
+  
 };
 
-exports.deleteTour=(req, res)=> {
-  const pathParam = req.params.id;
-  const filteredTours = tours.filter((tour) => tour.id !== +pathParam);
-  if (filteredTours.length === tours.length) {
-    res.status(404).json({
-      status: 'failed',
-      message: 'Invalid ID'
-    });
-  }
-  fs.writeFile(filepath, JSON.stringify(filteredTours), (err) => {
-    res.status(204).json({
+exports.updateTour = async (req,res) => {
+  // const pathParam = req.params.id;
+  // const modifiedTour = req.body;
+  // const findTourIndex = tours.findIndex((tour) => tour.id === +pathParam);
+  // tours[findTourIndex] = modifiedTour;
+  // if(findTourIndex === -1) {
+  //   res.status(404).json({
+  //     status: 'failed',
+  //     data: "Invalid ID"
+  //   })
+  //
+  // fs.writeFile(filepath, JSON.stringify(tours), (err) => {
+  
+  
+  try{
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators:true})
+    res.status(201).json({
       status: 'success',
-      data: null
+      data: {
+        tour
+      }
     });
-  });
+    
+  }catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err
+    })
+  }
+};
+exports.patchTour = async(req, res) => {
+  try {
+    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators:true})
+    res.status(201).json({
+      status: 'success',
+      data: {
+        tour
+      }
+    });
+    
+  }catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err
+    })
+  }
+  // const pathParam = req.params.id;
+  // const modifiedTour = req.body;
+  // const findTourIndex = tours.findIndex((tour) => tour.id === +pathParam);
+  // tours[findTourIndex] = { ...tours[findTourIndex], ...modifiedTour };
+  // fs.writeFile(filepath, JSON.stringify(tours), (err) => {
+};
+
+exports.deleteTour = async(req, res)=> {
+  // const pathParam = req.params.id;
+  // const filteredTours = tours.filter((tour) => tour.id !== +pathParam);
+  // if (filteredTours.length === tours.length) {
+  //   res.status(404).json({
+  //     status: 'failed',
+  //     message: 'Invalid ID'
+  //   });
+  // }
+  // fs.writeFile(filepath, JSON.stringify(filteredTours), (err) => {
+   
+  
+  
+   try {
+     
+     await Tour.findByIdAndDelete(req.params.id)
+     res.status(204).json({
+       status: 'success',
+       data: null
+     });
+   }
+   catch (err) {
+     res.status(400).json({
+       status: 'fail',
+       message: err
+     })
+   }
+   
+
   
 }
 

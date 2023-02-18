@@ -10,8 +10,9 @@ const router = express.Router()
 //   next();
 // })
 
-router.param('id',checkID)
+// router.param('id',checkID)
 
-router.route('/').get(getAllTours).post(checkRequestBody,createTour)
+
+router.route('/').get(getAllTours).post(createTour)
 router.route('/:id',).get(getTour).put(updateTour).patch(patchTour).delete(deleteTour)
 module.exports = router
