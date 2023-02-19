@@ -1,31 +1,80 @@
 const Tour = require('../model/tourModel');
 
-// const filepath = path.join(process.cwd(), 'dev-data/data', 'tours-simple.json');
-// const tours = JSON.parse(fs.readFileSync(filepath, 'utf-8'));
+exports.aliasTopTours = (req, res, next) => {
+  req.query.sort = '-ratingAverage,price';
+  req.query.limit = '5';
 
-// exports.checkID=(req,res,next, val) => {
-//   console.log(`Tour id is ${val}`)
-//   if(req.params.id > tours.length ) {
-//     return res.status(404).json({
-//       status:'failed',
-//       message: 'Invalid Id'
-//     })
-//   }
-//   next()
-// }
+  req.query.fields = 'name,price,ratingAverage,summary,difficulty';
+  next();
+};
 
-// exports.checkRequestBody = (req, res, next) => {
-//     const body = req.body
-//   // console.log(body.hasOwnProperty('name'))
-//   // console.log(body.hasOwnProperty('price'))
-//     if(!body.name || !body.price)  {
-//     return res.status(404).json({
-//       status:'failed',
-//       message: 'Invalid data'
-//     })
-//   }
-//   next()
-// }
+class APIFeatures {
+  constructor(query, queryString) {
+    this.query = query;
+    this.queryString = queryString;
+  }
+
+  filter() {
+    const queryObj = { ...this.queryString };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    //2) Advanced filtering
+    //{difficulty:'easy', duration: {$gte:5.3}}
+    //{difficulty:'easy', duration: {gte:5.3}}
+
+    let queryStr = JSON.stringify(queryObj);
+
+    queryStr = queryStr.replace(
+      /\b{gte|gt|lte|lt}\b/g,
+      (match) => `$ ${match}`
+    );
+
+    //Fix Me === it didn't work for lt
+
+    this.query = this.query.find(JSON.parse(queryStr));
+    return this;
+  }
+
+  sort() {
+    if (this.queryString.sort) {
+      //basic sorting
+      // query.sort(req.query.sort);
+
+      //advanced sorting
+      const sortBy = this.queryString.sort.split(',').join(' ');
+      // query.sort(req.query.sort.replace(/,/g, ' '));
+      this.query = this.query.sort(sortBy);
+    } else {
+      //adding default sort --- I feel this should always occur during pagination
+      this.query = this.query.sort('-_id');
+    }
+
+    return this;
+  }
+
+  limitFields() {
+    if (this.queryString.fields) {
+      const field = this.queryString.fields.split(',').join(' ');
+      this.query = this.query.select(field);
+    } else {
+      this.query = this.query.select('-__v');
+    }
+    return this;
+  }
+
+  paginate() {
+    const page = this.queryString.page * 1;
+    const limit = this.queryString.limit * 1 || 100;
+    const skip = (page - 1) * limit;
+
+    //page=2&limit=10, 1-10====>page 1; 11-20 ===> page 2; 21-30 ====> page3
+
+    this.query = this.query.skip(skip).limit(limit);
+
+    return this;
+  }
+}
 
 /////2) ROUTE HANDLERS
 exports.getAllTours = async (req, res) => {
@@ -43,24 +92,24 @@ exports.getAllTours = async (req, res) => {
     //Build Query
 
     //1A filtering
-    const queryObj = { ...req.query };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach((el) => delete queryObj[el]);
-
-    //2) Advanced filtering
-    //{difficulty:'easy', duration: {$gte:5.3}}
-    //{difficulty:'easy', duration: {gte:5.3}}
-
-    let queryStr = JSON.stringify(queryObj);
-
-    queryStr = queryStr.replace(
-      /\b{gte|gt|lte|lt}\b/g,
-      (match) => `$ ${match}`
-    );
-
-    //Fix Me === it didn't work for lt
-
-    let query = Tour.find(JSON.parse(queryStr));
+    // const queryObj = { ...req.query };
+    // const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    // excludedFields.forEach((el) => delete queryObj[el]);
+    //
+    // //2) Advanced filtering
+    // //{difficulty:'easy', duration: {$gte:5.3}}
+    // //{difficulty:'easy', duration: {gte:5.3}}
+    //
+    // let queryStr = JSON.stringify(queryObj);
+    //
+    // queryStr = queryStr.replace(
+    //   /\b{gte|gt|lte|lt}\b/g,
+    //   (match) => `$ ${match}`
+    // );
+    //
+    // //Fix Me === it didn't work for lt
+    //
+    // let query = Tour.find(JSON.parse(queryStr));
 
     /* second method
     const tours = await Tour.find()
@@ -73,29 +122,50 @@ exports.getAllTours = async (req, res) => {
 
     //1b. SORTING
 
-    if (req.query.sort) {
-      //basic sorting
-      // query.sort(req.query.sort);
-
-      //advanced sorting
-      const sortBy = req.query.sort.split(',').join(' ');
-      query.sort(sortBy);
-    } else {
-      //adding default sort
-      query = query.sort('-createdAt');
-    }
+    // if (req.query.sort) {
+    //   //basic sorting
+    //   // query.sort(req.query.sort);
+    //
+    //   //advanced sorting
+    //   const sortBy = req.query.sort.split(',').join(' ');
+    //   // query.sort(req.query.sort.replace(/,/g, ' '));
+    //   query.sort(sortBy);
+    // } else {
+    //   //adding default sort --- I feel this should always occur during pagination
+    //   query = query.sort('-_id');
+    // }
 
     //3 Field Limiting
 
-    if (req.query.fields) {
-      const field = req.query.fields.split(',').join(' ');
-      query = query.select(field);
-    } else {
-      query = query.select('-__v');
-    }
+    // if (req.query.fields) {
+    //   const field = req.query.fields.split(',').join(' ');
+    //   query = query.select(field);
+    // } else {
+    //   query = query.select('-__v');
+    // }
+
+    // //4 Pagination
+    // const page = req.query.page * 1;
+    // const limit = req.query.limit * 1 || 100;
+    // const skip = (page - 1) * limit;
+    //
+    // //page=2&limit=10, 1-10====>page 1; 11-20 ===> page 2; 21-30 ====> page3
+    //
+    // query = query.skip(skip).limit(limit);
+    //
+    // if (req.query.page) {
+    //   const numTours = await Tour.countDocuments();
+    //   if (skip >= numTours) throw new Error("This page doesn't  exist");
+    // }
+
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
 
     //Execute Query
-    const tours = await query;
+    const tours = await features.query;
 
     //Send Response
     res.status(200).json({
