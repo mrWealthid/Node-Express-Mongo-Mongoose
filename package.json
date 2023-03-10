@@ -5,16 +5,22 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js",
-    "start:prod": "SET NODE_ENV=production&&nodemon server.js"
+    "start:prod": "SET NODE_ENV=production&&nodemon server.js",
+    "debug": "ndb server.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "g": "^2.0.1",
     "mongoose": "^5.13.15",
     "morgan": "^1.10.0",
-    "prettier": "^2.8.3"
+    "nbd": "^0.2.2",
+    "ndb": "^1.1.5",
+    "prettier": "^2.8.3",
+    "slugify": "^1.6.5",
+    "validator": "^13.9.0"
   },
   "devDependencies": {
     "eslint": "^8.32.0",
@@ -26,9 +32,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.32.1"
   },
-
   "engines": {
     "node": ">=10 <15"
   }
-
 }
