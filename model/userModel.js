@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
   photo: String,
+
   password: {
     type: String,
     required: [true, 'Please provide a password'],
@@ -29,6 +30,7 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords do not match',
     },
   },
+  passwordChangedAt: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -45,6 +47,17 @@ userSchema.pre('save', async function (next) {
 
   next();
 });
+
+userSchema.methods.changedPasswordAfter = async function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
+    return JWTTimestamp < changedTimeStamp;
+  }
+  return false;
+};
 
 userSchema.methods.correctPassword = async function (
   candidatePassword,

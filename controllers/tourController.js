@@ -11,9 +11,6 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-// const catchAsync = (fn) => (req, res, next) => {
-//   fn(req, res, next).catch((err) => next(err));
-// };
 /////2) ROUTE HANDLERS
 exports.getAllTours = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(Tour.find(), req.query)
