@@ -3,6 +3,7 @@ const APIFeatures = require('../utils/apiFeatures');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
+/////2) ROUTE HANDLERS
 exports.aliasTopTours = (req, res, next) => {
   req.query.sort = '-ratingAverage,price';
   req.query.limit = '5';
@@ -11,7 +12,6 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-/////2) ROUTE HANDLERS
 exports.getAllTours = catchAsync(async (req, res, next) => {
   const features = new APIFeatures(Tour.find(), req.query)
     .filter()
@@ -33,9 +33,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 });
 exports.getTour = catchAsync(async (req, res) => {
   const tour = await Tour.findById(req.params.id);
-
   if (!tour) return new AppError(`No Tour found with that ID`, 404);
-
   res.status(200).json({
     status: 'success',
     data: {
@@ -71,7 +69,6 @@ exports.patchTour = catchAsync(async (req, res, next) => {
     new: true,
     runValidators: true,
   });
-
   if (!tour) return new AppError(`No Tour found with that ID`, 404);
   res.status(201).json({
     status: 'success',
@@ -129,7 +126,6 @@ exports.getTourStats = catchAsync(async (req, res, next) => {
 
 exports.getMonthlyPlan = catchAsync(async (req, res) => {
   const year = req.params.year * 1;
-
   const plan = await Tour.aggregate([
     { $unwind: '$startDates' }, //The method seperates data from an array
     {
