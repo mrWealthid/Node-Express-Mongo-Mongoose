@@ -1,4 +1,5 @@
 const express = require('express');
+const reviewRouter = require('./reviewRoutes');
 const { getMonthlyPlan } = require('../controllers/tourController');
 const { getTourStats } = require('../controllers/tourController');
 const {
@@ -23,6 +24,8 @@ const router = express.Router();
 
 // router.param('id',checkID)
 
+router.use('/:tourId/reviews', reviewRouter);
+
 router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 
 //Aggregation operations for stats
@@ -41,4 +44,12 @@ router
     authController.restrictTo('admin', 'lead-guide'),
     deleteTour
   );
+
+//NESTED ROUTES
+// POST /tour/2233444/reviews
+
+//GET/tour/22333444/reviews
+
+//GET/tour/2344555/reviews/3344455
+
 module.exports = router;
