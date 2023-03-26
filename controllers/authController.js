@@ -121,7 +121,7 @@ exports.restrictTo =
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError(
-          'You don not have the permission to perform this action',
+          'You do not have the permission to perform this action',
           403
         )
       );
