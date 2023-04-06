@@ -8,7 +8,6 @@ const {
   createTour,
   patchTour,
   deleteTour,
-  updateTour,
   aliasTopTours,
 } = require('../controllers/tourController');
 
@@ -30,14 +29,31 @@ router.route('/top-5-cheap').get(aliasTopTours, getAllTours);
 
 //Aggregation operations for stats
 router.route('/tour-stats').get(getTourStats);
-router.route('/monthly-plan/:year').get(getMonthlyPlan);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide', 'guide'),
+    getMonthlyPlan
+  );
 
-router.route('/').get(authController.protect, getAllTours).post(createTour);
+router
+  .route('/')
+  .get(getAllTours)
+  .post(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    createTour
+  );
 
 router
   .route('/:id')
   .get(getTour)
-  .patch(patchTour)
+  .patch(
+    authController.protect,
+    authController.restrictTo('admin', 'lead-guide'),
+    patchTour
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),
