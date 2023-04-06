@@ -12,10 +12,7 @@ class APIFeatures {
     //{difficulty:'easy', duration: {$gte:5.3}}
     //{difficulty:'easy', duration: {gte:5.3}}
     let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(
-      /\b{gte|gt|lte|lt}\b/g,
-      (match) => `$ ${match}`
-    );
+    queryStr = queryStr.replace(/\b{gte|gt|lte|lt}\b/g, (match) => `$${match}`);
     //Fix Me === it didn't work for lt
     this.query = this.query.find(JSON.parse(queryStr));
     return this;

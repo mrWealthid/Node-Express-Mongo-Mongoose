@@ -37,7 +37,6 @@ router.route('/').get(authController.protect, getAllTours).post(createTour);
 router
   .route('/:id')
   .get(getTour)
-  .put(updateTour)
   .patch(patchTour)
   .delete(
     authController.protect,

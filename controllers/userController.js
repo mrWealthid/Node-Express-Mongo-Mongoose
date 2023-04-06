@@ -1,6 +1,7 @@
 const catchAsync = require('../utils/catchAsync');
 const User = require('../model/userModel');
 const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -10,43 +11,13 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  //Execute Query
-  const users = await User.find();
+exports.getAllUsers = factory.getAll(User);
+exports.getUser = factory.getOne(User);
 
-  //Send Response
-  res.status(200).json({
-    status: 'success',
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'failed',
-    message: 'Route Not Implemented Yet',
-  });
-};
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'failed',
-    message: 'Route Not Implemented Yet',
-  });
-};
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'failed',
-    message: 'Route Not Implemented Yet',
-  });
-};
-exports.createUser = (req, res) => {
-  res.status(500).json({
-    status: 'failed',
-    message: 'Route Not Implemented Yet',
-  });
-};
+//Don't try to update users password using this endpoint even as an admin
+exports.updateUser = factory.updateOne(User);
+exports.deleteUser = factory.deleteOne(User);
+// exports.createUser = factory.createOne(User);
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   //1 Create Error if user sends password data
