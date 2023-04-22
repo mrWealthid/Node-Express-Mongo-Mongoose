@@ -135,3 +135,63 @@ exports.getMonthlyPlan = catchAsync(async (req, res) => {
     },
   });
 });
+
+exports.getToursWithin = catchAsync(async (req, res, next) => {
+  const { distance, latlng, unit } = req.params;
+  // '/tours-within/:distance/center/36.103262, -79.840284/unit/:unit',
+
+  const [lat, lng] = latlng.split(',');
+
+  //We did this bcos mongo DB expects the radius to be in radians , 3963.2 ==> is the radius of the earth in miles
+  const radius = /mi/.test(unit) ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !lng) {
+    next(
+      new AppError('Please provide Lat and long in the format lat,lng', 400)
+    );
+  }
+
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+  });
+  res.status(200).json({
+    status: 'success',
+    result: tours.length,
+    data: {
+      data: tours,
+    },
+  });
+});
+
+exports.getDistances = catchAsync(async (req, res, next) => {
+  const { latlng, unit } = req.params;
+  // '/tours-within/:distance/center/36.103262, -79.840284/unit/:unit',
+
+  const [lat, lng] = latlng.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !lng) {
+    next(
+      new AppError('Please provide Lat and long in the format lat,lng', 400)
+    );
+  }
+
+  const distances = await Tour.aggregate([
+    {
+      $geoNear: {
+        near: { type: 'Point', coordinates: [lng * 1, lat * 1] },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
+      },
+    },
+    { $project: { distance: 1, name: 1 } },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      data: distances,
+    },
+  });
+});

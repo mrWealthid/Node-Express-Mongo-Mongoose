@@ -15,12 +15,13 @@ const tourSchema = new mongoose.Schema(
     },
     slug: String,
 
-    ratingQuantity: { type: Number, default: 0 },
-    ratingAverage: {
+    ratingsQuantity: { type: Number, default: 0 },
+    ratingsAverage: {
       type: Number,
       default: 4.5,
       max: [5, 'Rating must be below 5.0'],
       min: [1, 'Rating must be above 1.0'],
+      set: (val) => Math.round(val * 10) / 10,
     },
     duration: { type: Number, required: [true, 'A tour must have a duration'] },
     maxGroupSize: {
@@ -103,6 +104,7 @@ const tourSchema = new mongoose.Schema(
 //Indexing for better performance-SINGLE INDEX
 // tourSchema.index({ price: 1 });
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 //Compound Index
 tourSchema.index({ price: 1, ratingsAverage: -1 });
@@ -161,10 +163,10 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 ////Aggregation Middleware
 
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 
