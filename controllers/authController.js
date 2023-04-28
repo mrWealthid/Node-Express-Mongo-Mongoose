@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const User = require('../model/userModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -37,7 +37,7 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
-exports.signup = catchAsync(async (req, res, next) => {
+exports.signup = catchAsync(async (req, res) => {
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
@@ -45,14 +45,17 @@ exports.signup = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
     role: req.body.role,
   });
+  const url = `${req.protocol}://${req.get('host')}/me`;
+
+  await new Email(newUser, url).sendWelcome();
   createSendToken(newUser, 201, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  //1) Check if email and password exists
+  //1) Check if emails and password exists
   if (!email || !password) {
-    return next(new AppError('Please provide email and password', 400));
+    return next(new AppError('Please provide emails and password', 400));
   }
   //2) Check if user exists & password is correct after it's hashed
   const user = await User.findOne({
@@ -60,7 +63,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError('Incorrect email or password', 401));
+    return next(new AppError('Incorrect emails or password', 401));
   }
 
   //3) If everything is ok, send token to client
@@ -128,29 +131,23 @@ exports.restrictTo =
   };
 
 exports.forgotPassword = async (req, res, next) => {
-  //1) Get user based on Posted email
+  //1) Get user based on Posted emails
   const user = await User.findOne({ email: req.body.email });
 
   if (!user) {
-    return next(new AppError('There is no user with email address.', 400));
+    return next(new AppError('There is no user with emails address.', 400));
   }
   //2) Generate the random reset token
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  //3) Send it to user's email
-  const resetURL = `${req.protocol}://${req.get(
-    'host'
-  )} / api/v1/users/resetPassword/${resetToken}`;
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to :${resetURL}. \nIf you didn't forget your password please ignore this email!  `;
-
   try {
-    await sendEmail({
-      email: user.email,
-      subject: 'Your Password Reset Token',
-      message,
-    });
+    //3) Send it to user's emails
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
 
+    await new Email(user, resetURL).sendPasswordReset();
     res.status(200).json({
       status: 'success',
       message: 'Token sent to email',
@@ -161,7 +158,7 @@ exports.forgotPassword = async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
     return next(
       new AppError(
-        'There was an error sending the email. Try again later!',
+        'There was an error sending the emails. Try again later!',
         500
       )
     );
