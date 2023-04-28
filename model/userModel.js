@@ -7,10 +7,10 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: [true, 'Please tell us your name!'] },
   email: {
     type: String,
-    required: [true, 'Please provide your email'],
+    required: [true, 'Please provide your emails'],
     unique: true,
     lowercase: true,
-    validate: [validator.isEmail, 'Please provide a valid email'],
+    validate: [validator.isEmail, 'Please provide a valid emails'],
   },
   photo: { type: String, default: 'default.jpg' },
   role: {

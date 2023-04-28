@@ -11,6 +11,8 @@ const {
   aliasTopTours,
   getToursWithin,
   getDistances,
+  uploadTourImages,
+  resizeTourImages,
 } = require('../controllers/tourController');
 
 const authController = require('../controllers/authController');
@@ -60,6 +62,8 @@ router
   .patch(
     authController.protect,
     authController.restrictTo('admin', 'lead-guide'),
+    uploadTourImages,
+    resizeTourImages,
     patchTour
   )
   .delete(

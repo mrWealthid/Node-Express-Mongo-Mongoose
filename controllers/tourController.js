@@ -1,8 +1,63 @@
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('../model/tourModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
 
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  //This is to permit only images for this project-- Bear in mind this will work for all kind of Images
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('Not an image! Please upload only images', 400), false);
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+//If we had just one field that takes multiple images we would do it like this
+// upload.array('images', 5) req.files
+// upload.single('images') req.file
+
+exports.uploadTourImages = upload.fields([
+  {
+    name: 'imageCover',
+    maxCount: 1,
+  },
+  { name: 'images', maxCount: 3 },
+]);
+
+exports.resizeTourImages = catchAsync(async (req, res, next) => {
+  console.log(req.files);
+
+  if (!req.files.imageCover || !req.files.images) next();
+
+  //1) Cover Image
+  req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${req.body.imageCover}`);
+
+  req.body.images = [];
+  await Promise.all(
+    req.files.images.map(async (img, i) => {
+      const imgName = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+      await sharp(img.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${imgName}`);
+      req.body.images.push(imgName);
+    })
+  );
+
+  next();
+});
 /////2) ROUTE HANDLERS
 exports.aliasTopTours = (req, res, next) => {
   req.query.sort = '-ratingAverage,price';
