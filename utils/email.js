@@ -14,6 +14,8 @@ module.exports = class Email {
     if (process.env.NODE_ENV === 'production') {
       //SEnd Grid
       return 1;
+
+      //Couldn't implement Send Grid because my account wasn't created! Try to Implement later when account is approved!
     }
 
     return nodemailer.createTransport({
