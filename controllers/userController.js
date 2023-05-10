@@ -66,8 +66,6 @@ exports.deleteUser = factory.deleteOne(User);
 // exports.createUser = factory.createOne(User);
 
 exports.updateMe = catchAsync(async (req, res, next) => {
-  console.log(req.file);
-  console.log(req.body);
   //1 Create Error if user sends password data
   if (req.body.password || req.body.passwordConfirm) {
     return next(

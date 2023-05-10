@@ -7,6 +7,7 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
 const cors = require('cors');
+const compression = require('compression');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
@@ -64,16 +65,16 @@ app.use(
 //Serving Static Files
 app.use(express.static(filepath));
 
+app.use(compression());
+
 //Test Middlewares
 app.use((req, res, next) => {
-  console.log('Hello from the middleware🚄');
   next();
 });
 
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
 
-  console.log(req.headers);
   next();
 });
 

@@ -23,18 +23,10 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => console.log('DB connection successfully'));
-// const testTour = new Tour({
-//   name: "The Fresh American",
-//   rating: 4.7,
-//   price: 497
-// })
-//
-//
-// testTour.save().then((doc)=> console.log(doc)).catch(err=> console.log(err))
+
 const PORT = process.env.port || 3000;
 const server = app.listen(PORT, () => {
   console.log(`App running on port ${PORT}...`);
- 
 });
 
 process.on('unhandledRejection', (err) => {
