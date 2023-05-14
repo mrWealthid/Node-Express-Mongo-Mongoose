@@ -19,6 +19,9 @@ const filepath = path.join(process.cwd(), 'public');
 
 const app = express();
 
+//To trust proxies
+app.enable('trust proxy');
+
 console.log(process.env.NODE_ENV);
 
 ////1) GLOBAL MIDDLEWARES4
